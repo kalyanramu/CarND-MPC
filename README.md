@@ -64,7 +64,7 @@ The main goal of the project is to implement in C++ Model Predictive Control to 
 
 ## Kinematic Model
 
-A simple Kinematic model (ignores tire forces, gravity, mass, etc) was used for the Controller. Some attempts to build more complicated dynamic model were made, but with low success. It is essential to know parameters of the vehicle (such as law of response on the throttle, geometry of the car, drag model, tires properties, etc) to construct a reasonable dynamic model but such parameters are not derectly accessible from provided materials for the project. 
+A simple Kinematic model (ignores tire forces, gravity, mass, etc) was used for the Controller. 
 
 Position (_x,y_), heading (_ψ_) and velocity (_v_) form the vehicle state vector:
 
@@ -75,13 +75,14 @@ There are two actuators. Stearing angle (_δ_) is the first one, it should be in
 
 Actuators: _[δ,a]_
 
+Errors: cross track error (_cte_) and _ψ_ error (_eψ_) were used to build the cost function for the MPC. They could be updated on a new time step using the following equa
+
 The kinematic model can predict the state on the next time step by taking into account the current state and actuators as follows:
 
+![equations](./equations.png)
 
+where _Lf_ measures the distance between the front of the vehicle and its center of gravity. 
 
-where _Lf_ measures the distance between the front of the vehicle and its center of gravity. The parameter was provided by Udacity.
-
-Errors: cross track error (_cte_) and _ψ_ error (_eψ_) were used to build the cost function for the MPC. They could be updated on a new time step using the following equations:
 
 ## MPC Parameter Tuning
 
@@ -96,13 +97,14 @@ The cost function weights were tuned by trial-and-error method. All these parame
 __Note:__ To obtain relatively slow, but safe behavior the following weights described below are used in ```MPC.h```:
 
 ```cpp
-#define REF_CTE 0
-#define REF_EPSI 0
-#define REF_V 40
-#define W_CTE 2
-#define W_EPSI 20
-#define W_V 1
-#define W_DELTA 100000
-#define W_A 20
-#define W_DDELTA 0
-#define W_DA 0
+#define ref_v 50
+#define NUM_STEPS 20
+#define DELTA_TIME 0.1
+
+#define A_WEIGHT 50 
+#define DELTA_WEIGHT 1000
+#define A_DIFF_WEIGHT 1
+#define DELTA_DIFF_WEIGHT 0.1
+#define VREF_WEIGHT 1
+#define CTE_WEIGHT 1
+#define PSI_WEIGHT 1
