@@ -79,7 +79,7 @@ Errors: cross track error (_cte_) and _ψ_ error (_eψ_) were used to build the 
 
 The kinematic model can predict the state on the next time step by taking into account the current state and actuators as follows:
 
-![equations](./equations.png)
+![equations](equations.png)
 
 where _Lf_ measures the distance between the front of the vehicle and its center of gravity. 
 
