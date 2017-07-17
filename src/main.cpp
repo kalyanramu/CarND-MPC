@@ -102,7 +102,7 @@ int main() {
           double throttle = j[1]["throttle"];
 
           //Tranform waypoints data from global co-ordinate system to vehicle co-ordinate system
-          MatrixXd T;
+          MatrixXd T(3,3);
           T << cos(psi), -sin(psi), px,
             sin(psi), cos(psi), py,
             0,0,1;
@@ -139,20 +139,45 @@ int main() {
           double epsi_current = -atan(coeffs[1]) ; //I don't completely understand this
           
 
+
+          // Using global kinematic to predict forward project during the delay time
+          double dt = DELTA_TIME; //d in mpc.h
+          double Lf = LF; //defined in mpc.h
+          double px_fwd = v * dt;
+          double py_fwd = 0;
+          double psi_fwd = - v * steering_angle * dt / Lf;
+          double v_fwd = v + throttle * dt;
+          double cte_fwd = cte_current + v * sin(epsi_current) * dt;
+          const double epsi_fwd = epsi_current + psi_fwd; 
+          VectorXd fstate(6);
+          fstate << px_fwd, py_fwd, psi_fwd, v_fwd, cte_fwd, epsi_fwd;
+
           VectorXd state(6); //state holds 6 variables
           state << 0,0,0,v,cte_current,epsi_current;
 
           vector<double> actuator_vals;
-          actuator_vals = mpc.Solve(state, coeffs); //
+          int use_fwd = 0;
+          if (use_fwd)
+          {
+            actuator_vals = mpc.Solve(fstate, coeffs); //
+          }
+          else
+          {
+              actuator_vals = mpc.Solve(state, coeffs); //
+          }
+          
           
           double throttle_value = actuator_vals[0];
-          double steer_value = actuator_vals[1];
+          double steer_value = actuator_vals[1]/deg2rad(25);
           
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
+          msgJson["steering_angle"] = -steer_value;
+          //cout << "Steer Value: " << steer_value <<endl;
           msgJson["throttle"] = throttle_value;
+
+          //Get mpc_x_vals, mpac_y_vals from MPC
 
           //Display the MPC predicted trajectory 
           vector<double> mpc_x_vals;
@@ -160,6 +185,8 @@ int main() {
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
+          mpc_x_vals = mpc.x_vals;
+          mpc_y_vals = mpc.y_vals;
 
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
@@ -168,6 +195,11 @@ int main() {
           vector<double> next_x_vals;
           vector<double> next_y_vals;
 
+          //Get next_x_vals,next_y_vals from waypoints
+          for(unsigned int i = 0; i<ptsx.size();i++){
+            next_x_vals.push_back(ptsx_transform[i]);
+            next_y_vals.push_back(ptsy_transform[i]);
+          }
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
 
@@ -176,7 +208,10 @@ int main() {
 
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
+          //Debug
+          cout << "Steer: " << steer_value << endl;
+
+          //std::cout << msg << std::endl;
           // Latency
           // The purpose is to mimic real driving conditions where
           // the car does actuate the commands instantly.
@@ -186,7 +221,7 @@ int main() {
           //
           // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
           // SUBMITTING.
-          this_thread::sleep_for(chrono::milliseconds(100));
+          this_thread::sleep_for(chrono::milliseconds(int(dt*1000))); //convert seconds to ms
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {
