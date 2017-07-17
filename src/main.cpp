@@ -8,9 +8,10 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "MPC.h"
 #include "json.hpp"
-
+#include "Eigen-3.3/Eigen/Dense"
 // for convenience
 using json = nlohmann::json;
+using namespace Eigen;
 
 // For converting back and forth between radians and degrees.
 constexpr double pi() { return M_PI; }
@@ -77,7 +78,7 @@ int main() {
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
     string sdata = string(data).substr(0, length);
-    cout << sdata << endl;
+    //cout << sdata << endl;
     if (sdata.size() > 2 && sdata[0] == '4' && sdata[1] == '2') {
       string s = hasData(sdata);
       if (s != "") {
@@ -85,12 +86,45 @@ int main() {
         string event = j[0].get<string>();
         if (event == "telemetry") {
           // j[1] is the data JSON object
+          
+          //waypoint array
           vector<double> ptsx = j[1]["ptsx"];
           vector<double> ptsy = j[1]["ptsy"];
+
+          //Current state of the vehicle
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+
+          //DATA.md explains about the websocket information
+          double steering_angle = j[1]["steering_angle"];
+          double throttle = j[1]["throttle"];
+
+          //Tranform waypoints data from global co-ordinate system to vehicle co-ordinate system
+          MatrixXd T;
+          T << cos(psi), -sin(psi), px,
+            sin(psi), cos(psi), py,
+            0,0,1;
+          
+          MatrixXd Tinv;
+          Tinv = T.inverse();
+          VectorXd P(3);
+          
+          VectorXd ptsx_transform(ptsx.size());
+          VectorXd ptsy_transform(ptsy.size());
+          for (unsigned int i=0; i < ptsx.size(); i++)
+          {
+            // px,py is the origin of vehicle co-ord
+            // ptsx,ptsy waypoint to be transformed to vehicle co-ord
+            // Transform matrix from global to vehicle
+            // Transform matrix from vehicle to global x position in global map.
+            P << ptsx[i], ptsy[i], 1;
+            Vector3d trans_p = Tinv * P;
+            ptsx_transform[i] = trans_p[0];
+            ptsy_transform[i] = trans_p[1];
+          }
+
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -98,9 +132,22 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+          VectorXd coeffs;
+          coeffs = polyfit(ptsx_transform,ptsy_transform,3); //Fit 3rd order polynomial to transformed waypoints
 
+          double cte_current = polyeval(coeffs,0) - 0; 
+          double epsi_current = -atan(coeffs[1]) ; //I don't completely understand this
+          
+
+          VectorXd state(6); //state holds 6 variables
+          state << 0,0,0,v,cte_current,epsi_current;
+
+          vector<double> actuator_vals;
+          actuator_vals = mpc.Solve(state, coeffs); //
+          
+          double throttle_value = actuator_vals[0];
+          double steer_value = actuator_vals[1];
+          
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].

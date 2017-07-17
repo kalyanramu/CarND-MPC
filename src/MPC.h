@@ -6,6 +6,11 @@
 
 using namespace std;
 
+#define ref_v 50
+#define DEG25_RAD 0.436332
+#define MAX_VAL 1.0e19
+#define MAX_ACCEL 1.0
+
 class MPC {
  public:
   MPC();
