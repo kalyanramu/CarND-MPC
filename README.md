@@ -62,6 +62,9 @@ is the vehicle starting offset of a straight line (reference). If the MPC implem
 
 The main goal of the project is to implement in C++ Model Predictive Control to drive the car around the track. MPC uses an approximate Global Kinematic Model to predict the motion of the vehicle and an optimization algorithm is used to calculate the required control inputs to move along the desired trajectory.
 
+You can view the performance of the controller at the link below:
+https://youtu.be/uSz2TF9mhtM
+
 ## Kinematic Model
 
 A simple Kinematic model (ignores tire forces, gravity, mass, etc) was used for the Controller. 
