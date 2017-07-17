@@ -88,15 +88,14 @@ where _Lf_ measures the distance between the front of the vehicle and its center
 
 Very similar to PID, MPC also requires tuning  of controller parameters to get optimal performance
 
-First of all, data about waypoints was transformed into the vehicle space and a 3d order polynomial was fitted to the data. Actual state of the vehicle was "predicted" into the future by 100 ms latency. It helps to reduce negative effects of the latency and increase stability of the controller. The latency was introduced to simulate real delay of a human driver or physical actuators in case of a self driving car. Cross track error and orientation error were calculated, is then they were passed into the MPC routine.
+First of all, data about waypoints was transformed into the vehicle space and a 3d order polynomial was fitted to the data. Actual state of the vehicle was "predicted" into the future by 100 ms latency. This improves performance of the controller as errors and state were calculated more accurately.
 
 The time horizon (_T_) was chosen to 2 s after experiments. It was shown that the MPC could drive safely around the track with _T_ = 1 s, but on a slow speed. Higher speed requires more future information to make smart decisions in serial turns. Time step duration (_dt_) was setted equal to the latancy of the simulation (0.1 s), hense, 20 time steps (_N_) was used.
 
 The cost function weights were tuned by trial-and-error method. All these parameters are stored in the `src/MPC.h` file. I couldn't completely highest speed but the vehicle was able to steer around the track at 50mph.
 
-__Note:__ To obtain relatively slow, but safe behavior the following weights described below are used in ```MPC.h```:
 
-```cpp
+To tune the MPC following parameters were used in MPC.h
 #define ref_v 50
 #define NUM_STEPS 20
 #define DELTA_TIME 0.1
@@ -108,3 +107,15 @@ __Note:__ To obtain relatively slow, but safe behavior the following weights des
 #define VREF_WEIGHT 1
 #define CTE_WEIGHT 1
 #define PSI_WEIGHT 1
+
+Tuning the parameters:
+a) A_WEIGHT:
+Increasing a_weight decreased the speed at which vehicle can navigate, while decreasing a_weight increases the speed but it also introduced more deviation for the reference trajectory
+
+b) DELTA_WEIGHT:
+Increasing delta weight too high caused the vehicle to not steer quickly at turns and was getting off track sometimes.
+However if the delta weight is too low, vehicle seems steer too much even on straight path.
+
+c) VREF_WEIGHT also contributed to increase/decrease in speed of vehicle
+
+
