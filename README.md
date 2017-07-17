@@ -122,3 +122,4 @@ However if the delta weight is too low, vehicle seems steer too much even on str
 c) VREF_WEIGHT also contributed to increase/decrease in speed of vehicle
 
 
+I also have tried the tuning the model with and without state prediction before optimizing the values for MPC solver.
