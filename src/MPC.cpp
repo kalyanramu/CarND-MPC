@@ -105,8 +105,28 @@ class FG_eval {
       AD<double> delta0 = vars[delta_start + t - 1];
       AD<double> a0 = vars[a_start + t - 1];
 
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0;
-      AD<double> psides0 = CppAD::atan(coeffs[1]);
+      // Update these equations for 3rd-order polynomial as waypoints 
+      // are fitted with 3rd order polynomial
+      AD<double> f0 = 0; // = coeffs[0] + coeffs[1] * x0
+      AD<double> x0_term =1;
+      for(unsigned int i=0; i < coeffs.size(); i++)
+      {
+        f0 += coeffs[i] * x0_term;
+        x0_term *= x0;
+      }
+      //first order polynomial
+      //AD<double> psides0 = CppAD::atan(coeffs[1]);
+      //Update for 3rd-order polynomial
+      //AD<double> psides0 = CppAD::atan(3 * coeffs[3] * x0 * x0 + 2 * coeffs[2] * x0 + coeffs[1]); //derivative of f0
+      
+      AD<double> psides0 = 0;
+      x0_term =1;
+      for (unsigned int i=1; i <coeffs.size(); i++)
+      {
+        psides0 += coeffs[i] *x0_term;
+        x0_term *= x0;
+      }
+      psides0 = CppAD::atan(psides0);
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.

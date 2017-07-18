@@ -136,8 +136,7 @@ int main() {
           coeffs = polyfit(ptsx_transform,ptsy_transform,3); //Fit 3rd order polynomial to transformed waypoints
 
           double cte_current = polyeval(coeffs,0) - 0; 
-          double epsi_current = -atan(coeffs[1]) ; //I don't completely understand this
-          
+          double epsi_current = -atan(coeffs[1]) ;          
 
 
           // Using global kinematic to predict forward project during the delay time
@@ -156,7 +155,7 @@ int main() {
           state << 0,0,0,v,cte_current,epsi_current;
 
           vector<double> actuator_vals;
-          int use_fwd = 0;
+          int use_fwd = 1;
           if (use_fwd)
           {
             actuator_vals = mpc.Solve(fstate, coeffs); //

@@ -8,22 +8,22 @@ using namespace std;
 
 #define LF 2.67
 
-#define ref_v 50
+#define ref_v 70
 #define DEG25_RAD 0.436332
 #define MAX_VAL 1.0e19
 #define MAX_ACCEL 1.0
-#define NUM_STEPS 20
+#define NUM_STEPS 10
 #define DELTA_TIME 0.1
 
-#define A_WEIGHT 50 //5000 --- vehicle doesn't move much
-#define DELTA_WEIGHT 1000 //Increasing this made vehicle truen even at high speed properly
+#define A_WEIGHT 40 //5000 --- vehicle doesn't move much
+#define DELTA_WEIGHT 0.0001 //Increasing this made vehicle truen even at high speed properly
 
 #define A_DIFF_WEIGHT 1
-#define DELTA_DIFF_WEIGHT 0.1
+#define DELTA_DIFF_WEIGHT 5000
 
 #define VREF_WEIGHT 1
-#define CTE_WEIGHT 1
-#define PSI_WEIGHT 1
+#define CTE_WEIGHT 0.1 //Keeps this tight to center when turning 0.01
+#define PSI_WEIGHT 50
 
 class MPC {
  public:
