@@ -84,8 +84,9 @@ First of all, data about waypoints was transformed into the vehicle space and a 
 ##### C. Duration of Estimating Horizon:
 The MPC is used to predict the state of the system in the following "N" steps based on the current state. The first step of actuation is performed and the prediction is carried out again for the next "N" steps. Thus the horizon of the controller is changing. After trying different combination of number of steps (N) and time differnece between states (dt), I settled on N = 10 and dt = 0.1s.
 
-My target was to get the car to a maximum of 50 mph and these values provided a good balance. At that speed 1 sec horizon was useful in fitting the way points around a curved section of the track an optimal amount of time before the car had to actually turn. At N=20 and dt=0.1s, eventhough car was able to complete the track, it couldn't keep with in the lane bounds and swerving lot at turns. This was probably because it was trying to find optimal curve for too sharp curve and steering lot.
-Decreasing dt to 0.05 at N=10, the vehicle had lot of cross track error and was getting off the track.
+Target speed for the car is set to a 50 mph and these values of N =10 and dt =0.1 provided good performance. At that speed 1 sec horizon was useful in fitting the way points around a curved section of the track an optimal amount of time before the car had to actually turn. 
+At N=20 and dt=0.1s, eventhough car was able to complete the track, it couldn't keep with in the lane bounds and swerving lot at turns. This was probably because it was trying to find optimal curve for too sharp curve and steering lot.
+At N=20 and dt=0.05s, the vehicle had lot of cross track error and was getting off the track.
 I tried smaller dt values and found the car behaving erractily at curves and then seinging from one end of the track to another.
 
 ##### D. Cost Function Weights
