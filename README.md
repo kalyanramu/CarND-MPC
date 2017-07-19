@@ -84,11 +84,14 @@ First of all, data about waypoints was transformed into the vehicle space and a 
 ##### C. Duration of Estimating Horizon:
 The MPC is used to predict the state of the system in the following "N" steps based on the current state. The first step of actuation is performed and the prediction is carried out again for the next "N" steps. Thus the horizon of the controller is changing. After trying different combination of number of steps (N) and time differnece between states (dt), I settled on N = 10 and dt = 0.1s.
 
-At speed of 50mph, 1 sec horizon was useful in fitting the way points around a curved section of the track an optimal amount of time before the car had to actually turn. I tried smaller dt values and found the car behaving erractily at curves and then swinging from one end of the track to another.
+My target was to get the car to a maximum of 50 mph and these values provided a good balance. At that speed 1 sec horizon was useful in fitting the way points around a curved section of the track an optimal amount of time before the car had to actually turn. At N=20 and dt=0.1s, eventhough car was able to complete the track, it couldn't keep with in the lane bounds and swerving lot at turns. This was probably because it was trying to find optimal curve for too sharp curve and steering lot.
+Decreasing dt to 0.05 at N=10, the vehicle had lot of cross track error and was getting off the track.
+I tried smaller dt values and found the car behaving erractily at curves and then seinging from one end of the track to another.
 
 ##### D. Cost Function Weights
 The cost function weights were tuned by trial-and-error method. All these parameters are stored in the `src/MPC.h` file.
-To tune the MPC following parameters were used in MPC.h
+To tune the MPC following parameters were used in MPC.
+```
 #define ref_v 50
 #define NUM_STEPS 20
 #define DELTA_TIME 0.1
@@ -100,7 +103,7 @@ To tune the MPC following parameters were used in MPC.h
 #define VREF_WEIGHT 1
 #define CTE_WEIGHT 1
 #define PSI_WEIGHT 1
-
+```
 Tuning the parameters:
 a) A_WEIGHT:
 Increasing a_weight decreased the speed at which vehicle can navigate, while decreasing a_weight increases the speed but it also introduced more deviation for the reference trajectory
@@ -111,9 +114,22 @@ However if the delta weight is too low, vehicle seems steer too much even on str
 
 c) VREF_WEIGHT also contributed to increase/decrease in speed of vehicle
 
+##### Latency:
+In real-world, there is latency between the controller sending actuation signal & vehicle steering/throttling as there might be processor and bus latencies. Also, the sensors might have delay. The results from computation are intended to be applied at current time. Since there is latency in the system, these latencies should be accounted. If not accounted, these latencies can introduce systematic errors. One approach to solve this issue would be to estimate the state of vehicle using kinematic equations after the latency and compensate for it. The main assumption here is that the latency is constant and can be estimated.
 
-I also have tried the tuning the model with and without state prediction before optimizing the values for MPC solver.
-
+```
+ // Using global kinematic to predict forward project during the delay time
+ double dt = DELTA_TIME; //d in mpc.h
+ double Lf = LF; //defined in mpc.h
+ double px_fwd = v * dt;
+ double py_fwd = 0;
+ double psi_fwd = - v * steering_angle * dt / Lf;
+ double v_fwd = v + throttle * dt;
+ double cte_fwd = cte_current + v * sin(epsi_current) * dt;
+ const double epsi_fwd = epsi_current + psi_fwd; 
+ VectorXd fstate(6);
+ fstate << px_fwd, py_fwd, psi_fwd, v_fwd, cte_fwd, epsi_fwd;
+ ```
 ## Dependencies
 
 * cmake >= 3.5

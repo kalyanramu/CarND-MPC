@@ -13,7 +13,7 @@ using namespace std;
 #define MAX_VAL 1.0e19
 #define MAX_ACCEL 1.0
 #define NUM_STEPS 10
-#define DELTA_TIME 0.1
+#define DELTA_TIME 0.05
 
 #define A_WEIGHT 40 //5000 --- vehicle doesn't move much
 #define DELTA_WEIGHT 0.0001 //Increasing this made vehicle truen even at high speed properly
