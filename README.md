@@ -106,6 +106,7 @@ To tune the MPC following parameters were used in MPC.
 #define PSI_WEIGHT 1
 ```
 Tuning the parameters:
+
 a) A_WEIGHT:
 Increasing a_weight decreased the speed at which vehicle can navigate, while decreasing a_weight increases the speed but it also introduced more deviation for the reference trajectory
 
